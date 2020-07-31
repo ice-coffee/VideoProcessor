@@ -136,14 +136,19 @@ public class VideoDecodeThread extends Thread {
                 boolean eof = false;
                 int index = mExtractor.getSampleTrackIndex();
                 if (index == mVideoIndex) {
+                    //返回填充数据的输入缓冲区的索引，如果当前没有可用的输入缓冲区，则返回-1。
                     int inputBufIndex = mDecoder.dequeueInputBuffer(TIMEOUT_USEC);
                     if (inputBufIndex >= 0) {
+                        //获取一个ByteBuffer用于填充数据
                         ByteBuffer inputBuf = mDecoder.getInputBuffer(inputBufIndex);
+                        //检索当前的数据，并从给定偏移量开始将其存储在字节缓冲区中。
                         int chunkSize = mExtractor.readSampleData(inputBuf, 0);
                         if (chunkSize < 0) {
+                            //检索不到数据表明解码完成, 发送end_of_stream标识
                             mDecoder.queueInputBuffer(inputBufIndex, 0, 0, 0L, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
                             decoderDone = true;
                         } else {
+                            //返回当前示例的显示时间(以微秒为单位)。
                             long sampleTime = mExtractor.getSampleTime();
                             mDecoder.queueInputBuffer(inputBufIndex, 0, chunkSize, sampleTime, 0);
                             mExtractor.advance();
