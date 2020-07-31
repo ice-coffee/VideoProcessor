@@ -166,6 +166,7 @@ public class VideoProcessor {
      */
     public static void processVideo(@NotNull Context context, @NotNull Processor processor) throws Exception {
 
+        //获取媒体信息
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
         processor.input.setDataSource(retriever);
         int originWidth = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH));
@@ -174,6 +175,7 @@ public class VideoProcessor {
         int oriBitrate = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE));
         int durationMs = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
         retriever.release();
+
         if (processor.bitrate == null) {
             processor.bitrate = oriBitrate;
         }
@@ -192,14 +194,21 @@ public class VideoProcessor {
             resultWidth = temp;
         }
 
+        //音视频分离器
         MediaExtractor extractor = new MediaExtractor();
         processor.input.setDataSource(extractor);
+        //获取音频和视频各自的轨道
         int videoIndex = VideoUtil.selectTrack(extractor, false);
         int audioIndex = VideoUtil.selectTrack(extractor, true);
+
+        //音视频合并器
         MediaMuxer mediaMuxer = new MediaMuxer(processor.output, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+        //新的音频轨道用于音频读写
         int muxerAudioTrackIndex = 0;
         boolean shouldChangeAudioSpeed = processor.changeAudioSpeed == null ? true : processor.changeAudioSpeed;
         Integer audioEndTimeMs = processor.endTimeMs;
+
+        //TODO-MZP 以下if代码块中重新定义了一个用于音频读写的MediaFormat,但是使用audioTrackFormat应该一样
         if (audioIndex >= 0) {
             MediaFormat audioTrackFormat = extractor.getTrackFormat(audioIndex);
             String audioMimeType = MediaFormat.MIMETYPE_AUDIO_AAC;
@@ -261,6 +270,8 @@ public class VideoProcessor {
         progressAve.setEndTimeMs(processor.endTimeMs == null ? durationMs : processor.endTimeMs);
         AtomicBoolean decodeDone = new AtomicBoolean(false);
         CountDownLatch muxerStartLatch = new CountDownLatch(1);
+
+        //视频编码
         VideoEncodeThread encodeThread = new VideoEncodeThread(extractor, mediaMuxer,processor.bitrate,
                 resultWidth, resultHeight, processor.iFrameInterval, processor.frameRate == null ? DEFAULT_FRAME_RATE : processor.frameRate, videoIndex,
                 decodeDone, muxerStartLatch);
@@ -268,9 +279,10 @@ public class VideoProcessor {
         if (srcFrameRate <= 0) {
             srcFrameRate = (int) Math.ceil(VideoUtil.getAveFrameRate(processor.input));
         }
+        //视频解码
         VideoDecodeThread decodeThread = new VideoDecodeThread(encodeThread, extractor, processor.startTimeMs, processor.endTimeMs, srcFrameRate,
                 processor.frameRate == null ? DEFAULT_FRAME_RATE : processor.frameRate, processor.speed, processor.dropFrames, videoIndex, decodeDone);
-
+        //音频读写
         AudioProcessThread audioProcessThread = new AudioProcessThread(context, processor.input, mediaMuxer, processor.startTimeMs, audioEndTimeMs,
                 shouldChangeAudioSpeed ? processor.speed : null, muxerAudioTrackIndex, muxerStartLatch);
         encodeThread.setProgressAve(progressAve);
@@ -278,14 +290,16 @@ public class VideoProcessor {
         decodeThread.start();
         encodeThread.start();
         audioProcessThread.start();
+        //主线程等待子线程执行完毕
         try {
             long s = System.currentTimeMillis();
             decodeThread.join();
+            long e0 = System.currentTimeMillis();
             encodeThread.join();
             long e1 = System.currentTimeMillis();
             audioProcessThread.join();
             long e2 = System.currentTimeMillis();
-            CL.w(String.format("编解码:%dms,音频:%dms", e1 - s, e2 - s));
+            CL.w(String.format("解码:%dms,编码:%dms,音频:%dms", e0 - s, e1 - e0, e2 - s));
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

@@ -40,6 +40,18 @@ public class VideoEncodeThread extends Thread implements IVideoEncodeThread {
     private volatile Surface mSurface;
     private VideoProgressAve mProgressAve;
 
+    /**
+     * @param extractor 音视频分离器
+     * @param muxer 音视频合并器
+     * @param bitrate 比特率
+     * @param resultWidth 输出文件宽高
+     * @param resultHeight
+     * @param iFrameInterval I 帧间隔
+     * @param frameRate 帧率
+     * @param videoIndex 视频轨道ID
+     * @param decodeDone 解码是否完成
+     * @param muxerStartLatch 异步
+     */
     public VideoEncodeThread(MediaExtractor extractor, MediaMuxer muxer,
                              int bitrate, int resultWidth, int resultHeight, int iFrameInterval,
                              int frameRate, int videoIndex,

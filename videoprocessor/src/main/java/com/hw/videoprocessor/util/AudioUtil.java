@@ -632,7 +632,16 @@ public class AudioUtil {
     }
 
     /**
-     * 不需要改变音频速率的情况下，直接读写就可
+     * 音频数据读写, 不需要改变音频速率的情况下，直接读写就可
+     * @param extractor 音视频分离器
+     * @param mediaMuxer 音视频合并器
+     * @param muxerAudioTrackIndex 新的音频轨道ID
+     * @param startTimeUs
+     * @param endTimeUs
+     * @param baseMuxerFrameTimeUs 音频合并时使用, 已合并的音频数据总时长
+     * @param listener
+     * @return
+     * @throws IOException
      */
     public static long writeAudioTrack(MediaExtractor extractor, MediaMuxer mediaMuxer, int muxerAudioTrackIndex,
                                        Integer startTimeUs, Integer endTimeUs, long baseMuxerFrameTimeUs, VideoProgressListener listener) throws IOException {
