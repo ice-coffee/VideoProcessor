@@ -136,21 +136,23 @@ public class VideoDecodeThread extends Thread {
                 boolean eof = false;
                 int index = mExtractor.getSampleTrackIndex();
                 if (index == mVideoIndex) {
-                    //返回填充数据的输入缓冲区的索引，如果当前没有可用的输入缓冲区，则返回-1。
+                    //返回可用的输入缓冲区的索引，如果当前没有可用的输入缓冲区，则返回-1。
                     int inputBufIndex = mDecoder.dequeueInputBuffer(TIMEOUT_USEC);
                     if (inputBufIndex >= 0) {
-                        //获取一个ByteBuffer用于填充数据
+                        //获取输入缓冲区ByteBbuffer
                         ByteBuffer inputBuf = mDecoder.getInputBuffer(inputBufIndex);
                         //检索当前的数据，并从给定偏移量开始将其存储在字节缓冲区中。
                         int chunkSize = mExtractor.readSampleData(inputBuf, 0);
                         if (chunkSize < 0) {
-                            //检索不到数据表明解码完成, 发送end_of_stream标识
+                            //检索不到数据表明解码完成, 输入流入队end_of_stream标识
                             mDecoder.queueInputBuffer(inputBufIndex, 0, 0, 0L, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
                             decoderDone = true;
                         } else {
                             //返回当前示例的显示时间(以微秒为单位)。
                             long sampleTime = mExtractor.getSampleTime();
+                            //输入流入队,解码器解码
                             mDecoder.queueInputBuffer(inputBufIndex, 0, chunkSize, sampleTime, 0);
+                            //读取下一帧数据
                             mExtractor.advance();
                         }
                     }
@@ -168,11 +170,13 @@ public class VideoDecodeThread extends Thread {
                     }
                 }
             }
+            //解码器输出可用
             boolean decoderOutputAvailable = !decoderDone;
             if (decoderDone) {
                 CL.i("decoderOutputAvailable:" + decoderOutputAvailable);
             }
             while (decoderOutputAvailable) {
+                //从输出队列中取出解码之后的数据
                 int outputBufferIndex = mDecoder.dequeueOutputBuffer(info, TIMEOUT_USEC);
                 CL.i("outputBufferIndex = " + outputBufferIndex);
                 if (inputDone && outputBufferIndex == MediaCodec.INFO_TRY_AGAIN_LATER) {
@@ -219,6 +223,7 @@ public class VideoDecodeThread extends Thread {
                             doRender = false;
                     }
                     frameIndex++;
+                    //释放ByteBuffer缓冲区, 若解码器配置了surface,传入doRender = true则显示到surface上
                     mDecoder.releaseOutputBuffer(outputBufferIndex, doRender);
                     if (doRender) {
                         boolean errorWait = false;

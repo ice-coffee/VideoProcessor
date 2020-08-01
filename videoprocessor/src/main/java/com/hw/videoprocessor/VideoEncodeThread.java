@@ -102,8 +102,10 @@ public class VideoEncodeThread extends Thread implements IVideoEncodeThread {
         }
         String mimeType = VideoProcessor.OUTPUT_MIME_TYPE;
         MediaFormat outputFormat = MediaFormat.createVideoFormat(mimeType, mResultWidth, mResultHeight);
+        //TODO-MZP KEY_COLOR_FORMAT 的各个值的含义是什么呢
         outputFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
         outputFormat.setInteger(MediaFormat.KEY_FRAME_RATE, frameRate);
+        //设置关键帧间隔
         outputFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, mIFrameInterval);
 
         mEncoder = MediaCodec.createEncoderByType(mimeType);
