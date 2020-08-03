@@ -133,7 +133,7 @@ public class AudioUtil {
     }
 
     /**
-     *
+     * 混合并调整音量
      * @param volume1 [0,100]
      * @param volume2 [0,100]
      * @throws IOException
@@ -290,6 +290,7 @@ public class AudioUtil {
             } else {
                 channelCount = channelCount1;
             }
+            //修改采样率
             if (sampleRate1 != sampleRate2) {
                 sampleRate = Math.min(sampleRate1, sampleRate2);
                 if (sampleRate1 != sampleRate) {
@@ -315,6 +316,9 @@ public class AudioUtil {
         }
     }
 
+    /**
+     * 音频填充
+     */
     public static File checkAndFillPcm(File aacPcmFile, int pcmDuration, int fileToDuration) {
         if (pcmDuration >= fileToDuration) {
             return aacPcmFile;
@@ -334,6 +338,7 @@ public class AudioUtil {
             from = is.getChannel();
             to = os.getChannel();
             for (int i = 0; i < repeatInt; i++) {
+                //将字节从from通道的文件传输到to的可写字节通道。
                 from.transferTo(0, from.size(), to);
                 from.position(0);
             }
@@ -584,6 +589,10 @@ public class AudioUtil {
         }
     }
 
+    /**
+     * SSRC 一款命令行转换工具, 可以转换采样率\音量\保存位数等
+     * https://www.cnblogs.com/renhui/articles/12166070.html
+     */
     public static boolean reSamplePcm(String srcPath, String dstPath, int srcSampleRate, int dstSampleRate, int srcChannelCount) {
         FileInputStream fis = null;
         FileOutputStream fos = null;

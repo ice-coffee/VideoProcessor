@@ -784,7 +784,7 @@ public class VideoProcessor {
             if (channelCount == 2) {
                 channelConfig = AudioFormat.CHANNEL_IN_STEREO;
             }
-            //淡入淡出
+            //TODO-MZP 淡入淡出
             if (fadeInSec != 0 || fadeOutSec != 0) {
                 AudioFadeUtil.audioFade(adjustedPcm.getAbsolutePath(), sampleRate, channelCount, fadeInSec, fadeOutSec);
             }
