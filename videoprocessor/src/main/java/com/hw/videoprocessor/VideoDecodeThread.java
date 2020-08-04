@@ -1,6 +1,8 @@
 package com.hw.videoprocessor;
 
 import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
+import android.media.MediaCodecList;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.view.Surface;
@@ -107,8 +109,11 @@ public class VideoDecodeThread extends Thread {
 
         MediaFormat inputFormat = mExtractor.getTrackFormat(mVideoIndex);
 
+        MediaCodecList codecList = new MediaCodecList(MediaCodecList.REGULAR_CODECS);
+        CL.e(codecList.findDecoderForFormat(inputFormat));
+
         //初始化解码器
-        mDecoder = MediaCodec.createDecoderByType(inputFormat.getString(MediaFormat.KEY_MIME));
+        mDecoder = MediaCodec.createByCodecName(codecList.findDecoderForFormat(inputFormat));
         mOutputSurface = new OutputSurface();
         mDecoder.configure(inputFormat, mOutputSurface.getSurface(), null, 0);
         mDecoder.start();
