@@ -136,10 +136,10 @@ public class VideoDecodeThread extends Thread {
                 boolean eof = false;
                 int index = mExtractor.getSampleTrackIndex();
                 if (index == mVideoIndex) {
-                    //返回可用的输入缓冲区的索引，如果当前没有可用的输入缓冲区，则返回-1。
+                    //返回可用的输入流缓冲区的索引，如果当前没有可用的输入缓冲区，则返回-1。
                     int inputBufIndex = mDecoder.dequeueInputBuffer(TIMEOUT_USEC);
                     if (inputBufIndex >= 0) {
-                        //获取输入缓冲区ByteBbuffer
+                        //获取输入缓冲区ByteBuffer
                         ByteBuffer inputBuf = mDecoder.getInputBuffer(inputBufIndex);
                         //检索当前的数据，并从给定偏移量开始将其存储在字节缓冲区中。
                         int chunkSize = mExtractor.readSampleData(inputBuf, 0);
