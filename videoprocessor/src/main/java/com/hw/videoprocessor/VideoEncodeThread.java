@@ -2,6 +2,7 @@ package com.hw.videoprocessor;
 
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
+import android.media.MediaCodecList;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
@@ -108,7 +109,8 @@ public class VideoEncodeThread extends Thread implements IVideoEncodeThread {
         //设置关键帧间隔
         outputFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, mIFrameInterval);
 
-        mEncoder = MediaCodec.createEncoderByType(mimeType);
+        MediaCodecList codecList = new MediaCodecList(MediaCodecList.REGULAR_CODECS);
+        mEncoder = MediaCodec.createByCodecName(codecList.findEncoderForFormat(outputFormat));;
         boolean supportProfileHigh = VideoUtil.trySetProfileAndLevel(mEncoder, mimeType, outputFormat,
                 MediaCodecInfo.CodecProfileLevel.AVCProfileHigh,
                 MediaCodecInfo.CodecProfileLevel.AVCLevel31
